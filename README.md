@@ -35,9 +35,15 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 ```
 
 ### Windows CMD
+Make sure your folder doesn’t have filenames with special characters like & or ^ — CMD can be tricky there.
 
 ```bat
 scripts\extract-procreate-thumbnails.cmd
+```
+
+If you get an execution policy error, run:
+```bat
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 ```
 
 ## Output
