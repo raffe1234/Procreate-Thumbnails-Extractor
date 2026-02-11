@@ -1,5 +1,5 @@
 @echo off
-setlocal EnableDelayedExpansion
+setlocal EnableExtensions EnableDelayedExpansion
 
 REM ============================================================
 REM extract-procreate-thumbnails.cmd
@@ -38,6 +38,8 @@ REM   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 REM
 REM ============================================================
 
+set "BARW=30"
+
 set total=0
 set ok=0
 set fail=0
@@ -57,33 +59,38 @@ echo.
 echo Starting extraction of Procreate thumbnails...
 echo.
 
+REM --- Create a temporary PowerShell script (extractor) ---
+set "PS1=%TEMP%\extract-procreate-thumb-%RANDOM%%RANDOM%.ps1"
+
+> "%PS1%"  echo param([string]$Procreate,[string]$Out)
+>>"%PS1%"  echo Add-Type -AssemblyName System.IO.Compression.FileSystem
+>>"%PS1%"  echo try {
+>>"%PS1%"  echo   $zip = [IO.Compression.ZipFile]::OpenRead($Procreate)
+>>"%PS1%"  echo   $entry = $zip.GetEntry('QuickLook/Thumbnail.png')
+>>"%PS1%"  echo   if ($entry) {
+>>"%PS1%"  echo     $outStream = [IO.File]::Create($Out)
+>>"%PS1%"  echo     $entry.Open().CopyTo($outStream)
+>>"%PS1%"  echo     $outStream.Close()
+>>"%PS1%"  echo     $zip.Dispose()
+>>"%PS1%"  echo     exit 0
+>>"%PS1%"  echo   } else {
+>>"%PS1%"  echo     $zip.Dispose()
+>>"%PS1%"  echo     exit 2
+>>"%PS1%"  echo   }
+>>"%PS1%"  echo } catch { exit 1 }
+
 set processed=0
 
 for %%F in (*.procreate) do (
     set /a processed+=1
-    set filename=%%F
-    set basename=%%~nF
-    set output=!basename!.png
+    set "filename=%%F"
+    set "basename=%%~nF"
+    set "output=!basename!.png"
 
-    REM Use PowerShell to extract Thumbnail.png
-    powershell -NoProfile -Command ^
-        "try { ^
-            Add-Type -AssemblyName System.IO.Compression.FileSystem; ^
-            $zip=[IO.Compression.ZipFile]::OpenRead('%%F'); ^
-            $entry=$zip.GetEntry('QuickLook/Thumbnail.png'); ^
-            if($entry){ ^
-                $out=[IO.File]::Create('!output!'); ^
-                $entry.Open().CopyTo($out); ^
-                $out.Close(); ^
-                $zip.Dispose(); ^
-                exit 0 ^
-            } else { ^
-                $zip.Dispose(); ^
-                exit 2 ^
-            } ^
-        } catch { exit 1 }"
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%PS1%" -Procreate "%%F" -Out "!output!"
+    set "psErr=!errorlevel!"
 
-    if !errorlevel! == 0 (
+    if !psErr! == 0 (
         if exist "!output!" (
             for %%S in ("!output!") do (
                 if %%~zS gtr 0 (
@@ -94,18 +101,28 @@ for %%F in (*.procreate) do (
                     echo !filename!: Empty PNG file>>problems.log
                 )
             )
+        ) else (
+            set /a fail+=1
+            echo !filename!: Output file not created>>problems.log
         )
     ) else (
         set /a fail+=1
-        echo !filename!: Could not extract Thumbnail.png>>problems.log
+        if !psErr! == 2 (
+            echo !filename!: Thumbnail.png not found>>problems.log
+        ) else (
+            echo !filename!: Could not extract Thumbnail.png (code !psErr!)>>problems.log
+        )
     )
 
     set /a percent=(processed*100)/total
-
-    <nul set /p ="Processed: !processed!/!total!  (!percent!%%)  OK: !ok!  Failed: !fail!     `r"
+    call :showProgress !percent! !total! !ok! !fail! %BARW%
 )
 
+REM Finish the progress line with a newline
 echo.
+
+del "%PS1%" >nul 2>&1
+
 echo.
 echo Done!
 echo Total files processed: %processed%
@@ -120,3 +137,23 @@ if %fail% gtr 0 (
 
 :end
 endlocal
+exit /b 0
+
+:showProgress
+REM args: percent total ok fail barw
+setlocal EnableExtensions
+set "P=%~1"
+set "T=%~2"
+set "O=%~3"
+set "F=%~4"
+set "W=%~5"
+
+powershell.exe -NoProfile -Command ^
+  "$p=%P%; $w=%W%; $filled=[int]($p*$w/100);" ^
+  "$bar=('#'*$filled)+('-'*($w-$filled));" ^
+  "$msg=('[{0}] {1,3}%  Total: {2}  OK: {3}  Failed: {4}' -f $bar,$p,%T%,%O%,%F%);" ^
+  "Write-Host -NoNewline (\"`r\" + $msg.PadRight(120))"
+
+endlocal & exit /b 0
+
+
