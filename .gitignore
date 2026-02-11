@@ -1,0 +1,5 @@
+# Generated thumbnails
+*.png
+
+# Logs (from CMD script)
+problems.log
