@@ -38,8 +38,6 @@ REM   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 REM
 REM ============================================================
 
-set "BARW=30"
-
 set total=0
 set ok=0
 set fail=0
@@ -54,6 +52,11 @@ if %total%==0 (
     echo No .procreate files found.
     goto :end
 )
+
+REM --- Progress setup: report about every 10% (no percent math) ---
+set /a step=total/10
+if %step% LSS 1 set step=1
+set next_report=%step%
 
 echo.
 echo Starting extraction of Procreate thumbnails...
@@ -87,6 +90,12 @@ for %%F in (*.procreate) do (
     set "basename=%%~nF"
     set "output=!basename!.png"
 
+    REM --- SIMPLE PROGRESS (before extraction) ---
+    if !processed! GEQ !next_report! (
+        echo Progress: !processed!/!total!   OK: !ok!   Failed: !fail!
+        set /a next_report+=step
+    )
+
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%PS1%" -Procreate "%%F" -Out "!output!"
     set "psErr=!errorlevel!"
 
@@ -113,15 +122,11 @@ for %%F in (*.procreate) do (
             echo !filename!: Could not extract Thumbnail.png (code !psErr!)>>problems.log
         )
     )
-
-    set /a percent=(processed*100)/total
-    call :showProgress !percent! !total! !ok! !fail! %BARW%
 )
 
-REM Finish the progress line with a newline
-echo.
-
 del "%PS1%" >nul 2>&1
+
+echo Progress: %total%/%total%   OK: %ok%   Failed: %fail%
 
 echo.
 echo Done!
@@ -138,22 +143,4 @@ if %fail% gtr 0 (
 :end
 endlocal
 exit /b 0
-
-:showProgress
-REM args: percent total ok fail barw
-setlocal EnableExtensions
-set "P=%~1"
-set "T=%~2"
-set "O=%~3"
-set "F=%~4"
-set "W=%~5"
-
-powershell.exe -NoProfile -Command ^
-  "$p=%P%; $w=%W%; $filled=[int]($p*$w/100);" ^
-  "$bar=('#'*$filled)+('-'*($w-$filled));" ^
-  "$msg=('[{0}] {1,3}%  Total: {2}  OK: {3}  Failed: {4}' -f $bar,$p,%T%,%O%,%F%);" ^
-  "Write-Host -NoNewline (\"`r\" + $msg.PadRight(120))"
-
-endlocal & exit /b 0
-
 
