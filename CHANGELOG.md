@@ -1,7 +1,12 @@
 # Changelog
 
+## v1.0.3 – 2026-02-13
+- Windows CMD script now uses 7-Zip (7z/7zr) instead of PowerShell for thumbnail extraction.
+- CMD script prints simple progress updates during processing.
+- README updated with 7-Zip setup instructions for CMD.
+
 ## v1.0.2 – 2026-02-11
-- Fix CMD scriptwith progress
+- Fix CMD script with progress
 
 ## v1.0.1 – 2026-02-11
 - Fix README and normalize line endings

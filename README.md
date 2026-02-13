@@ -3,8 +3,7 @@
 Extract QuickLook thumbnails (`QuickLook/Thumbnail.png`) from `.procreate` files.
 
 A `.procreate` file is a ZIP archive. This project extracts the embedded thumbnail image into a `*.png`
-file with the same base filename.
-
+file with the same base filename, so you can preview your artwork quickly in file explorers (e.g. Windows Explorer).
 
 ## Manual method (Windows, 7-Zip)
 
@@ -15,7 +14,7 @@ file with the same base filename.
 
 ## Quick start (recommended)
 
-1. **Download/copy the script to your computer**
+1. **Download/copy the script(s) to your computer**
    - Download this repo as a ZIP from GitHub and extract it, **or**
    - Copy a single script from the `scripts/` folder.
 2. **Place the script in the same folder as your `.procreate` files**
@@ -25,7 +24,7 @@ file with the same base filename.
    - Linux/macOS: Shell (`.sh`)
 
 > Tip: If you keep the scripts somewhere else, you can still run them — just **cd into** the folder that
-> contains your `.procreate` files first, or adjust the script paths.
+> contains your `.procreate` files first, or run using the full path to the script.
 
 ## Scripts
 
@@ -69,10 +68,26 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\scripts\extract-procreate-thumbnails.ps1
 ```
 
-### Windows CMD
+### Windows CMD (7-Zip based)
 
-**Note:** Make sure your folder doesn’t have filenames with special characters like `&` or `^`
-— CMD can be tricky there (see “Known limitations” below).
+The CMD script extracts thumbnails using **7-Zip** (recommended for better robustness than embedding long PowerShell one-liners in CMD).
+
+#### Requirements (choose one)
+
+**Option A: Portable (no install)**
+1. Download the **7-Zip console executable** (`7zr.exe`) from the 7-Zip download page https://www.7-zip.org/download.html 
+2. Put `7zr.exe` in the **same folder** as:
+   - your `.procreate` files
+   - the `.cmd` script you run
+
+**Option B: Install 7-Zip**
+1. Install 7-Zip using the Windows installer from https://www.7-zip.org/download.html
+2. The script will try these common locations automatically:
+   - `%ProgramFiles%\7-Zip\7z.exe`
+   - `%ProgramFiles(x86)%\7-Zip\7z.exe`
+3. (Optional) Add 7-Zip to your `PATH`.
+
+#### Run
 
 If you copied the script into the `.procreate` folder:
 
@@ -86,11 +101,7 @@ If you run it from this repo’s folder:
 scripts\extract-procreate-thumbnails.cmd
 ```
 
-If you get an execution policy error, run (in PowerShell):
-
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-```
+The script prints simple progress updates (about every 10% of files processed).
 
 ## Output
 
@@ -117,6 +128,8 @@ This repository includes a `.gitattributes` file to normalize line endings acros
   - The script has Windows line endings. Ensure the `.sh` file uses LF (this repo enforces it via `.gitattributes`).
 - **Linux/macOS: `unzip: command not found`**
   - Install `unzip` using your package manager (e.g. `apt`, `dnf`, `brew`).
+- **CMD: “Could not find 7zr.exe or 7z.exe”**
+  - Put `7zr.exe` next to the script (portable option), or install 7-Zip.
 - **Nothing happens / no PNG output**
   - Confirm you are running the script in the folder that contains the `.procreate` files.
 
@@ -139,4 +152,3 @@ Procreate-Thumbnails-Extractor/
 ## License
 
 GPL-3.0-or-later
-
