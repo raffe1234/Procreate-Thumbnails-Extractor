@@ -68,24 +68,22 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\scripts\extract-procreate-thumbnails.ps1
 ```
 
-### Windows CMD (7-Zip based)
+### Windows CMD (installed 7-Zip required)
 
-The CMD script extracts thumbnails using **7-Zip** (recommended for better robustness than embedding long PowerShell one-liners in CMD).
+The CMD script extracts thumbnails using the **installed 7-Zip CLI (`7z.exe`)**.
 
-#### Requirements (choose one)
+Why installed 7-Zip only?
+- The small standalone `7zr.exe` can be blocked by security tools and/or fail to open `.procreate` ZIP archives reliably on some systems.
+- `7z.exe` (installed version) works consistently for this extraction method.
 
-**Option A: Portable (no install)**
-1. Download the **7-Zip console executable** (`7zr.exe`) from the 7-Zip download page https://www.7-zip.org/download.html 
-2. Put `7zr.exe` in the **same folder** as:
-   - your `.procreate` files
-   - the `.cmd` script you run
+#### Requirements
 
-**Option B: Install 7-Zip**
-1. Install 7-Zip using the Windows installer from https://www.7-zip.org/download.html
-2. The script will try these common locations automatically:
-   - `%ProgramFiles%\7-Zip\7z.exe`
-   - `%ProgramFiles(x86)%\7-Zip\7z.exe`
-3. (Optional) Add 7-Zip to your `PATH`.
+1. Install 7-Zip using the Windows installer from the 7-Zip download page.
+2. The script will find `7z.exe` in one of these ways:
+   - via `PATH` (if you’ve added it), or
+   - in common install paths:
+     - `%ProgramFiles%\7-Zip\7z.exe`
+     - `%ProgramFiles(x86)%\7-Zip\7z.exe`
 
 #### Run
 
@@ -107,7 +105,7 @@ The script prints simple progress updates (about every 10% of files processed).
 
 For each `file.procreate`, the script writes `file.png` in the same folder.
 
-If a file is missing a thumbnail, the scripts skip it and (for CMD) log it to `problems.log`.
+If a file is missing a thumbnail, the scripts skip it and (for CMD) log failures to `problems.log`.
 
 ## Known limitations
 
@@ -128,8 +126,8 @@ This repository includes a `.gitattributes` file to normalize line endings acros
   - The script has Windows line endings. Ensure the `.sh` file uses LF (this repo enforces it via `.gitattributes`).
 - **Linux/macOS: `unzip: command not found`**
   - Install `unzip` using your package manager (e.g. `apt`, `dnf`, `brew`).
-- **CMD: “Could not find 7zr.exe or 7z.exe”**
-  - Put `7zr.exe` next to the script (portable option), or install 7-Zip.
+- **CMD: “Could not find 7z.exe”**
+  - Install 7-Zip and try again. If installed, confirm it’s in one of the common paths above or add it to `PATH`.
 - **Nothing happens / no PNG output**
   - Confirm you are running the script in the folder that contains the `.procreate` files.
 

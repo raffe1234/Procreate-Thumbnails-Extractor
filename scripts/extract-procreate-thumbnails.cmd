@@ -2,53 +2,55 @@
 setlocal EnableExtensions EnableDelayedExpansion
 
 REM ============================================================
-REM extract-procreate-thumbnails-7zip.cmd
+REM extract-procreate-thumbnails.cmd
 REM
-REM Extracts QuickLook\Thumbnail.png from each .procreate file and
-REM saves it as a .png with the same base filename.
+REM Extract QuickLook\Thumbnail.png from each .procreate file and save it
+REM as a .png with the same base filename.
 REM
 REM A .procreate file is a ZIP archive. The embedded preview is at:
 REM   QuickLook\Thumbnail.png
 REM
-REM REQUIREMENTS (choose one):
+REM REQUIREMENTS (Windows 10/11):
+REM   - Install 7-Zip (recommended): https://www.7-zip.org/download.html
+REM     (Install the "7-Zip for Windows" package.)
 REM
-REM Option A (portable, no install):
-REM   1) Download 7zr.exe from 7-zip.org (console executable)
-REM      Put 7zr.exe in the SAME folder as:
-REM        - your .procreate files
-REM        - this .cmd script
-REM
-REM Option B (install 7-Zip):
-REM   1) Install 7-Zip (Windows installer)
-REM   2) This script will try common locations:
-REM        %ProgramFiles%\7-Zip\7z.exe
-REM        %ProgramFiles(x86)%\7-Zip\7z.exe
-REM      (or you can add 7-Zip to PATH)
+REM IMPORTANT:
+REM   - This script uses the installed 7-Zip CLI: 7z.exe
+REM   - The small "7zr.exe" (standalone) is NOT supported here because it
+REM     cannot open ZIP archives reliably for this use-case (it is mainly
+REM     for 7z archives), so .procreate extraction will fail.
 REM
 REM USAGE:
-REM   Place this script in the folder containing your .procreate files
-REM   then run:
-REM     extract-procreate-thumbnails-7zip.cmd
+REM   1) Copy this .cmd file into the folder that contains your .procreate files
+REM   2) Run it from Command Prompt (CMD):
+REM        extract-procreate-thumbnails.cmd
 REM
 REM OUTPUT:
 REM   file.procreate -> file.png
 REM   failures are logged to problems.log
+REM
+REM NOTES / LIMITATIONS:
+REM   - CMD can be fragile with special characters in filenames (e.g. &, ^, !).
+REM     If you have such filenames, prefer the PowerShell script.
 REM ============================================================
 
-REM ---- Find 7-Zip console executable ----
+REM ---- Find installed 7z.exe ----
 set "SEVENZIP="
 
-REM Prefer portable exe in the same folder as this script:
-if exist "%~dp07zr.exe" set "SEVENZIP=%~dp07zr.exe"
-if not defined SEVENZIP if exist "%~dp07z.exe"  set "SEVENZIP=%~dp07z.exe"
+REM Try PATH first
+for /f "delims=" %%P in ('where 7z.exe 2^>nul') do (
+    set "SEVENZIP=%%P"
+    goto :found7z
+)
 
-REM Common install paths:
-if not defined SEVENZIP if exist "%ProgramFiles%\7-Zip\7z.exe" set "SEVENZIP=%ProgramFiles%\7-Zip\7z.exe"
+REM Try common install paths
+if exist "%ProgramFiles%\7-Zip\7z.exe" set "SEVENZIP=%ProgramFiles%\7-Zip\7z.exe"
 if not defined SEVENZIP if exist "%ProgramFiles(x86)%\7-Zip\7z.exe" set "SEVENZIP=%ProgramFiles(x86)%\7-Zip\7z.exe"
 
+:found7z
 if not defined SEVENZIP (
-    echo ERROR: Could not find 7zr.exe or 7z.exe.
-    echo Put 7zr.exe next to this script, or install 7-Zip.
+    echo ERROR: Could not find 7z.exe.
+    echo Install 7-Zip from https://www.7-zip.org/ and try again.
     exit /b 1
 )
 
@@ -59,7 +61,7 @@ REM ---- Count .procreate files ----
 set "total=0"
 for %%F in (*.procreate) do set /a total+=1
 
-if %total%==0 (
+if %total% EQU 0 (
     echo No .procreate files found.
     exit /b 0
 )
