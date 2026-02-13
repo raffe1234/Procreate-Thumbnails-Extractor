@@ -7,6 +7,8 @@ file with the same base filename, so you can preview your artwork quickly in fil
 
 ## Manual method (Windows, 7-Zip)
 
+**Requirements:** `7-zip`
+
 1. Right-click a `.procreate` file → (Win 11 More options →) **7-Zip** → **Open archive**
 2. Open the `QuickLook` folder
 3. Extract `Thumbnail.png`
