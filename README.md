@@ -8,7 +8,7 @@ file with the same base filename, so you can preview your artwork quickly in fil
 ## Manual method (Windows, 7-Zip)
 
 **Requirements:** `7-zip`
-- Install 7-Zip using the Windows installer from the 7-Zip download page.
+- Install 7-Zip using the Windows installer from the 7-Zip download page. See https://en.wikipedia.org/wiki/7-Zip for info.
 
 1. Right-click a `.procreate` file → (Win 11 More options →) **7-Zip** → **Open archive**
 2. Open the `QuickLook` folder
@@ -81,7 +81,7 @@ Why installed 7-Zip only?
 
 #### Requirements
 
-1. Install 7-Zip using the Windows installer from the 7-Zip download page.
+1. Install 7-Zip using the Windows installer from the 7-Zip download page. See https://en.wikipedia.org/wiki/7-Zip for info.
 2. The script will find `7z.exe` in one of these ways:
    - via `PATH` (if you’ve added it), or
    - in common install paths:
